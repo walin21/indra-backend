@@ -1,0 +1,71 @@
+# Welcome to Serverless!
+
+service: indra-backend
+
+frameworkVersion: "3"
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: ${env:aws_region}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource: "*"
+
+plugins:
+  - serverless-offline
+
+package:
+  individually: true
+
+custom:
+  tableName: ${env:aws_dynamodb_table}
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+    migration:
+        dir: offline/migrations
+
+functions:
+  createRecluta:
+    handler: src/controllers/createRecluta.handler
+    memorySize: 128
+    description: Servicio para crear reclutas.
+    events:
+      - http:
+          path: recluta
+          method: post
+          cors: true
+  listRecluta:
+    handler: src/controllers/listAllRecluta.handler
+    memorySize: 128
+    description: Servicio para listar a todos los reclutas
+    events:
+      - http:
+          path: recluta
+          method: get
+          cors: true
+  listSwapiPlanets:
+    handler: src/controllers/listSwapiPlanets.handler
+    memorySize: 128
+    description: Servicio para listar los planetas del servicio de Swapi
+    events:
+      - http:
+          path: swapiservice
+          method: get
+          cors: true
+      
+resources:
+  - ${file(./resources.yml)}
+
